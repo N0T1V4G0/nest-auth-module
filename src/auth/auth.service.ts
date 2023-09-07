@@ -21,9 +21,11 @@ export class AuthService {
   }
 
   async login(user: any) {
+    const userr = await this.userService.findOne(+user.id);
     const payload = {
       name: user.name,
       sub: user.id,
+      role: userr.role,
     };
 
     return {
