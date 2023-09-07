@@ -4,21 +4,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcrypt';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities/user.entity';
-import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private readonly userService: UserService,
     private readonly jwtservice: JwtService,
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
-    const existingUser = await this.userService.findByEmail(
-      createUserDto.email,
-    );
+    const existingUser = await this.userRepository.findOne({
+      where: { email: createUserDto.email },
+    });
 
     if (existingUser) {
       throw new HttpException('Email already registered!', 400);
@@ -42,25 +40,17 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, password: string) {
-    const user = await this.userService.findByEmail(email);
-
-    const validPassword = await compare(password, user.password);
-
-    if (user && validPassword) {
-      const { email, password, ...rest } = user;
-      return rest;
-    }
-
-    return null;
-  }
-
   async login(user: any) {
-    const userr = await this.userService.findOne(+user.id);
+    const userDb = await this.userRepository.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
     const payload = {
       name: user.name,
       sub: user.id,
-      role: userr.role,
+      role: userDb.role,
     };
 
     return {
@@ -70,5 +60,20 @@ export class AuthService {
 
   private hashPassword(password: string): Promise<string> {
     return hash(password, 10);
+  }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    const validPassword = await compare(password, user.password);
+
+    if (user && validPassword) {
+      const { email, password, ...rest } = user;
+      return rest;
+    }
+
+    return null;
   }
 }

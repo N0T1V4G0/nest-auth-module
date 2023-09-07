@@ -12,7 +12,6 @@ import { AuthController } from './auth.controller';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    UserModule,
     PassportModule,
     JwtModule.register({
       secret: 'JWT_SECRET',
