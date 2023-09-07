@@ -11,10 +11,6 @@ export class UserService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return this.userRepo.save(createUserDto);
-  }
-
   findByEmail(email: string) {
     return this.userRepo.findOne({
       where: {
