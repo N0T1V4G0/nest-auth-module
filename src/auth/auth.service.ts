@@ -67,6 +67,10 @@ export class AuthService {
       where: { email },
     });
 
+    if (!user) {
+      return null;
+    }
+
     const validPassword = await compare(password, user.password);
 
     if (user && validPassword) {
